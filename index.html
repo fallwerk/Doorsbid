@@ -177,14 +177,13 @@ footer{border-top:1px solid rgba(245,237,216,.06);padding:2rem 5rem;display:flex
     <h1>ÖFFNE<br>DIE <span class="gold">TÜR.</span><br><span class="dim">30 SEK.</span></h1>
     <p class="sub">Garagen, Container, Schränke – du siehst den Inhalt genau einmal. Dann schliesst die Tür für immer. Bieten oder passen – jetzt entscheiden.</p>
     <span class="form-label">Früher Zugang — Sei dabei von Anfang an</span>
-    <form action="https://gmail.us1.list-manage.com/subscribe/post?u=51c65c018433e4758043c259d&amp;id=6fa720a22c&amp;f_id=0075c2e1f0" method="post" id="hf" target="_blank" onsubmit="handleSubmit(event,'he','hs','hf')">
+    <div id="hf">
       <div class="form-row">
-        <input type="email" class="fi" placeholder="deine@email.ch" id="he" name="EMAIL" required/>
-        <div style="position:absolute;left:-5000px" aria-hidden="true"><input type="text" name="b_51c65c018433e4758043c259d_6fa720a22c" tabindex="-1" value=""/></div>
-        <button type="submit" class="fb">ZUGANG SICHERN</button>
+        <input type="email" class="fi" placeholder="deine@email.ch" id="he" name="EMAIL"/>
+        <button type="button" class="fb" onclick="handleSubmit('he','hs','hf')">ZUGANG SICHERN</button>
       </div>
       <div class="form-note">Kein Spam. <b id="cnt">247 Personen</b> sind bereits dabei.</div>
-    </form>
+    </div>
     <div class="sbox" id="hs">Perfekt — du erhältst frühen Zugang zum Launch. 🔑</div>
   </div>
   <div class="hero-right">
@@ -230,7 +229,7 @@ footer{border-top:1px solid rgba(245,237,216,.06);padding:2rem 5rem;display:flex
 <!-- HOW -->
 <section class="how" id="how">
   <div class="stag">Wie es funktioniert</div>
-  <div class="stitle">....thrill with bid! Wie Deine Container Helden im TV...<br><em>Aber digital.</em></div>
+  <div class="stitle">STORAGE WARS.<br><em>Aber digital.</em></div>
   <div class="steps">
     <div class="step">
       <div class="step-n">1</div>
@@ -281,14 +280,13 @@ footer{border-top:1px solid rgba(245,237,216,.06);padding:2rem 5rem;display:flex
     <div class="ch2">BEREIT FÜR<br>DEINE ERSTE <span>TÜR?</span></div>
     <p class="csub">Doorsbid startet bald. Trag dich jetzt ein und erhalte als Erste/r Zugang – plus exklusive Infos zum Launch und Sonderkonditionen als Gründungsmitglied.</p>
     <div class="cform">
-      <form action="https://gmail.us1.list-manage.com/subscribe/post?u=51c65c018433e4758043c259d&amp;id=6fa720a22c&amp;f_id=0075c2e1f0" method="post" id="cf" target="_blank" onsubmit="handleSubmit(event,'ce','cs','cf')">
+      <div id="cf">
         <div class="form-row">
-          <input type="email" class="fi" placeholder="deine@email.ch" id="ce" name="EMAIL" required/>
-          <div style="position:absolute;left:-5000px" aria-hidden="true"><input type="text" name="b_51c65c018433e4758043c259d_6fa720a22c" tabindex="-1" value=""/></div>
-          <button type="submit" class="fb">JETZT EINTRAGEN</button>
+          <input type="email" class="fi" placeholder="deine@email.ch" id="ce" name="EMAIL"/>
+          <button type="button" class="fb" onclick="handleSubmit('ce','cs','cf')">JETZT EINTRAGEN</button>
         </div>
         <div class="form-note" style="text-align:center;margin-top:12px">Kostenlos &nbsp;·&nbsp; Kein Spam &nbsp;·&nbsp; 🇨🇭 Made in Switzerland</div>
-      </form>
+      </div>
       <div class="csuccess" id="cs">PERFEKT — WIR MELDEN UNS BALD! 🔑</div>
     </div>
   </div>
@@ -296,7 +294,7 @@ footer{border-top:1px solid rgba(245,237,216,.06);padding:2rem 5rem;display:flex
 
 <footer>
   <div class="fl">Doors<span>bid</span></div>
-  <div class="fc">© 2026 Doorsbid · Brig, Schweiz · doorsbidinfo@gmail.com</div>
+  <div class="fc">© 2025 Doorsbid · Zürich, Schweiz · hallo@doorsbid.ch</div>
 </footer>
 
 <script>
@@ -340,23 +338,34 @@ function closeDoor(){
 }
 
 let count=247;
-function handleSubmit(e,eid,sid,fid){
+
+function handleSubmit(eid,sid,fid){
   const el=document.getElementById(eid);
   if(!el.value||!el.value.includes('@')){
-    e.preventDefault();
     el.style.borderColor='#8B1A1A';
     setTimeout(()=>el.style.borderColor='',1500);
     return;
   }
+  const email=el.value;
+
+  // Send to Mailchimp via JSONP (no page redirect)
+  const url='https://gmail.us1.list-manage.com/subscribe/post-json?u=51c65c018433e4758043c259d&id=6fa720a22c&f_id=0075c2e1f0&EMAIL='+encodeURIComponent(email)+'&b_51c65c018433e4758043c259d_6fa720a22c=&c=mailchimpCallback_'+fid;
+  const script=document.createElement('script');
+  script.src=url;
+  document.body.appendChild(script);
+
+  // Show success immediately (Mailchimp JSONP may be blocked by some browsers)
   count++;
   const c=document.getElementById('cnt');
   if(c) c.textContent=count+' Personen';
   document.getElementById('lc').textContent=count;
-  setTimeout(()=>{
-    document.getElementById(fid).style.display='none';
-    document.getElementById(sid).classList.add('show');
-  }, 400);
+  document.getElementById(fid).style.display='none';
+  document.getElementById(sid).classList.add('show');
 }
+
+// JSONP callbacks
+window.mailchimpCallback_hf=function(data){console.log('mc:',data)};
+window.mailchimpCallback_cf=function(data){console.log('mc:',data)};
 </script>
 </body>
 </html>
