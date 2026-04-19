@@ -141,12 +141,16 @@ footer{border-top:1px solid rgba(245,237,216,.06);padding:2rem 5rem;display:flex
 @media(max-width:768px){
   nav{padding:1rem 1.5rem}
   .nav-link{display:none}
-  .hero{grid-template-columns:1fr;padding:6rem 1.5rem 3rem;text-align:center}
+  .hero{grid-template-columns:1fr;padding:5rem 1.5rem 3rem;text-align:center}
   .eyebrow{justify-content:center}
-  .sub{margin:1.6rem auto 2.8rem}
+  .sub{margin:1.6rem auto 2rem}
   .form-row{flex-direction:column}
   .fi{border-right:1px solid rgba(232,184,75,.25);border-bottom:none}
-  .hero-right{display:none}
+  .hero-right{display:flex;justify-content:center;margin-top:1rem;margin-bottom:2rem}
+  .door-stage{width:200px;height:280px}
+  .d-outer{border-width:8px}
+  .d-leaf{background:linear-gradient(135deg,#5C2E12,#3D1F0D 40%,#2A1408)}
+  .d-hint{font-size:9px;bottom:-36px}
   .stats-bar{flex-wrap:wrap}
   .si{min-width:50%}
   .how,.who .who-in,.cta{padding:4rem 1.5rem}
@@ -298,6 +302,141 @@ footer{border-top:1px solid rgba(245,237,216,.06);padding:2rem 5rem;display:flex
 </footer>
 
 <script>
+// =============================================
+// DOORSBID – Supabase Verbindung
+// =============================================
+const SUPABASE_URL = 'https://mlbmedlxgzocjkdbtfdq.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sYm1lZGx4Z3pvY2prZGJ0ZmRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0Njg5OTMsImV4cCI6MjA5MjA0NDk5M30.p-lv7umuT9WtHkAzVjo7fcUI8ETQhmnxz5eZdXd-xkw';
+
+async function supabase(method, table, body = null, params = '') {
+  const url = `${SUPABASE_URL}/rest/v1/${table}${params}`;
+  const res = await fetch(url, {
+    method,
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': method === 'POST' ? 'return=representation' : ''
+    },
+    body: body ? JSON.stringify(body) : null
+  });
+  if (!res.ok) return null;
+  return method === 'HEAD' ? res.headers : res.json();
+}
+
+// Waitlist-Zähler aus Mailchimp-Datenbank simulieren
+// Echter Zähler kommt von der Auktions-Tabelle
+async function loadStats() {
+  try {
+    const data = await supabase('GET', 'auctions', null, '?select=count&status=eq.active');
+    if (data) {
+      const activeCount = Array.isArray(data) ? data.length : 0;
+      // Waitlist Zähler leicht animieren
+      animateCounter('lc', 247, 247 + activeCount);
+    }
+  } catch(e) {
+    console.log('Stats nicht verfügbar');
+  }
+}
+
+// Gebot speichern in Supabase
+async function saveBidToSupabase(auctionId, amount) {
+  try {
+    await supabase('POST', 'bids', {
+      auction_id: auctionId,
+      amount: amount,
+      bidder_id: null
+    });
+  } catch(e) {
+    console.log('Bid nicht gespeichert:', e);
+  }
+}
+
+// Tür-Öffnung tracken (IP-Schutz)
+async function trackDoorOpen(auctionId) {
+  try {
+    await supabase('POST', 'door_opens', {
+      auction_id: auctionId,
+      user_id: null,
+      ip_address: 'anonymous'
+    });
+  } catch(e) {
+    console.log('Door open nicht getrackt');
+  }
+}
+
+// Counter Animation
+function animateCounter(id, from, to) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  let current = from;
+  const step = Math.ceil((to - from) / 20);
+  const timer = setInterval(() => {
+    current = Math.min(current + step, to);
+    el.textContent = current;
+    if (current >= to) clearInterval(timer);
+  }, 50);
+}
+
+// Aktive Auktionen laden und anzeigen
+async function loadActiveAuction() {
+  try {
+    const data = await supabase('GET', 'auctions', null, 
+      '?status=eq.active&order=created_at.desc&limit=1');
+    if (data && data.length > 0) {
+      const auction = data[0];
+      // Tür-Nummer aktualisieren
+      const plate = document.querySelector('.d-plate');
+      if (plate) plate.textContent = auction.door_number || '47';
+      // Titel aktualisieren
+      const dti = document.getElementById('dti');
+      if (dti) dti.textContent = auction.title || 'Lagerraum #47';
+      // Preis aktualisieren
+      const dp = document.getElementById('dp');
+      if (dp) dp.textContent = 'GEBOT: CHF ' + Math.round(auction.current_price || 0);
+      // Stats
+      const el = document.getElementById('lc');
+      if (el) el.textContent = '247';
+    }
+  } catch(e) {
+    console.log('Auktion nicht geladen:', e);
+  }
+}
+
+// Echtzeit Gebote – live updates
+async function subscribeToLiveBids() {
+  // Supabase Realtime via WebSocket
+  const ws = new WebSocket(
+    `wss://mlbmedlxgzocjkdbtfdq.supabase.co/realtime/v1/websocket?apikey=${SUPABASE_KEY}&vsn=1.0.0`
+  );
+  ws.onopen = () => {
+    ws.send(JSON.stringify({
+      topic: 'realtime:public:bids',
+      event: 'phx_join',
+      payload: {},
+      ref: '1'
+    }));
+  };
+  ws.onmessage = (msg) => {
+    try {
+      const data = JSON.parse(msg.data);
+      if (data.event === 'INSERT' && data.payload?.record) {
+        const bid = data.payload.record;
+        // Preis live aktualisieren
+        const dp = document.getElementById('dp');
+        if (dp) dp.textContent = 'GEBOT: CHF ' + Math.round(bid.amount);
+      }
+    } catch(e) {}
+  };
+}
+
+// Beim Laden starten
+document.addEventListener('DOMContentLoaded', () => {
+  loadActiveAuction();
+  loadStats();
+  subscribeToLiveBids();
+});
+
 const items=[
   {e:'🏺',t:'Antike Möbel',p:'CHF 340',n:'47'},
   {e:'🚗',t:'Garage – Brig',p:'CHF 520',n:'12'},
