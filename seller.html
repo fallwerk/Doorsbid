@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Doorsbid – Verkäufer Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--black:#0A0806;--dark:#110D09;--amber:#C8821A;--gold:#E8B84B;--cream:#F5EDD8;--mist:#B8A898;--red:#C0392B;--green:#27AE60;--card:#1C1209;--border:rgba(232,184,75,.1)}
+html{scroll-behavior:smooth}
+body{font-family:'Crimson Pro',Georgia,serif;background:var(--black);color:var(--cream);min-height:100vh}
+.app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+.sidebar{background:var(--dark);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.sidebar-logo{padding:1.5rem 1.5rem 1rem;border-bottom:1px solid var(--border)}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;color:var(--cream);text-decoration:none;display:block}
+.logo span{color:var(--gold)}
+.logo-sub{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--mist);margin-top:3px;text-transform:uppercase}
+.sidebar-nav{flex:1;padding:1rem 0;overflow-y:auto}
+.nav-section{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(184,168,152,.4);padding:1rem 1.5rem .5rem}
+.nav-item{display:flex;align-items:center;gap:10px;padding:.7rem 1.5rem;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--mist);cursor:pointer;transition:all .2s;border-left:2px solid transparent;text-decoration:none}
+.nav-item:hover{color:var(--cream);background:rgba(232,184,75,.04)}
+.nav-item.active{color:var(--gold);border-left-color:var(--gold);background:rgba(232,184,75,.06)}
+.nav-icon{font-size:14px;width:18px;text-align:center}
+.nav-badge{margin-left:auto;background:var(--red);color:white;font-size:9px;padding:2px 6px;border-radius:10px}
+.sidebar-footer{padding:1rem 1.5rem;border-top:1px solid var(--border)}
+.seller-info{display:flex;align-items:center;gap:10px}
+.seller-avatar{width:32px;height:32px;border-radius:50%;background:var(--amber);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;color:var(--black);flex-shrink:0}
+.seller-name{font-size:13px;color:var(--cream)}
+.seller-type{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--amber);text-transform:uppercase}
+.main{display:flex;flex-direction:column;min-height:100vh}
+.topbar{background:var(--dark);border-bottom:1px solid var(--border);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.page-title{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;color:var(--cream)}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.btn{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:9px 18px;border-radius:2px;cursor:pointer;transition:all .2s;border:none}
+.btn-primary{background:var(--gold);color:var(--black)}
+.btn-primary:hover{background:var(--amber)}
+.btn-ghost{background:transparent;color:var(--mist);border:1px solid var(--border)}
+.btn-ghost:hover{color:var(--cream);border-color:rgba(232,184,75,.3)}
+.content{padding:2rem;flex:1}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:1.25rem 1.5rem}
+.stat-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--mist);margin-bottom:8px}
+.stat-value{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:1px;color:var(--cream);line-height:1}
+.stat-value.gold{color:var(--gold)}
+.stat-value.green{color:var(--green)}
+.stat-sub{font-size:12px;color:var(--mist);margin-top:4px;font-style:italic}
+.section{margin-bottom:2rem}
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.section-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--cream)}
+.section-tag{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--mist)}
+.auctions-table{width:100%;border-collapse:collapse}
+.auctions-table th{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--mist);padding:.75rem 1rem;text-align:left;border-bottom:1px solid var(--border)}
+.auctions-table td{padding:.9rem 1rem;border-bottom:1px solid rgba(232,184,75,.05);font-size:14px;color:var(--cream);vertical-align:middle}
+.auctions-table tr:hover td{background:rgba(232,184,75,.02)}
+.auction-door{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--gold)}
+.auction-title{font-size:15px;color:var(--cream)}
+.auction-loc{font-family:'DM Mono',monospace;font-size:10px;color:var(--mist);margin-top:2px;letter-spacing:1px}
+.status-badge{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;border-radius:20px}
+.status-active{background:rgba(39,174,96,.15);color:#27AE60;border:1px solid rgba(39,174,96,.3)}
+.status-upcoming{background:rgba(232,184,75,.1);color:var(--gold);border:1px solid rgba(232,184,75,.2)}
+.status-ended{background:rgba(184,168,152,.1);color:var(--mist);border:1px solid rgba(184,168,152,.2)}
+.bid-price{color:var(--gold);font-size:14px;font-family:'DM Mono',monospace}
+.bid-count{color:var(--mist);font-size:10px;margin-top:2px;font-family:'DM Mono',monospace}
+.action-btns{display:flex;gap:6px}
+.action-btn{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:2px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--mist);transition:all .2s}
+.action-btn:hover{color:var(--gold);border-color:rgba(232,184,75,.3)}
+.action-btn.del:hover{color:var(--red);border-color:rgba(192,57,43,.3)}
+.form-card{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:2rem}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group.full{grid-column:1/-1}
+.form-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--mist)}
+.form-input,.form-select,.form-textarea{background:rgba(245,237,216,.03);border:1px solid var(--border);color:var(--cream);font-family:'Crimson Pro',serif;font-size:15px;padding:10px 14px;border-radius:2px;transition:border-color .2s;width:100%}
+.form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:rgba(232,184,75,.4)}
+.form-input::placeholder,.form-textarea::placeholder{color:rgba(184,168,152,.4)}
+.form-select option{background:#1C1209;color:var(--cream)}
+.form-textarea{resize:vertical;min-height:90px;line-height:1.6}
+.timer-options{display:flex;gap:8px}
+.timer-opt{flex:1;padding:10px;border:1px solid var(--border);border-radius:2px;text-align:center;cursor:pointer;transition:all .2s;background:transparent}
+.timer-opt:hover{border-color:rgba(232,184,75,.3)}
+.timer-opt.selected{border-color:var(--gold);background:rgba(232,184,75,.08)}
+.timer-opt-num{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--gold);letter-spacing:1px}
+.timer-opt-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--mist);text-transform:uppercase}
+.upload-zone{border:2px dashed var(--border);border-radius:4px;padding:2rem;text-align:center;cursor:pointer;transition:all .2s;background:rgba(245,237,216,.02)}
+.upload-zone:hover{border-color:rgba(232,184,75,.3);background:rgba(232,184,75,.03)}
+.upload-icon{font-size:32px;margin-bottom:8px;display:block}
+.upload-text{font-size:14px;color:var(--mist);font-style:italic}
+.upload-sub{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:rgba(184,168,152,.4);margin-top:4px}
+.upload-preview{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;justify-content:center}
+.preview-img{width:80px;height:80px;object-fit:cover;border-radius:2px;border:1px solid var(--border)}
+.preview-placeholder{width:80px;height:80px;background:rgba(232,184,75,.08);border:1px solid var(--border);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:24px}
+.form-actions{display:flex;gap:10px;justify-content:flex-end;padding-top:1.5rem;border-top:1px solid var(--border)}
+.activity-list{display:flex;flex-direction:column;gap:1px}
+.activity-item{display:flex;align-items:center;gap:12px;padding:.9rem 1rem;background:var(--card);border:1px solid var(--border);border-radius:2px;margin-bottom:2px}
+.activity-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.activity-dot.bid{background:var(--gold)}
+.activity-dot.open{background:#3498DB}
+.activity-dot.win{background:#27AE60}
+.activity-text{flex:1;font-size:14px;color:var(--cream)}
+.activity-text span{color:var(--gold)}
+.activity-time{font-family:'DM Mono',monospace;font-size:10px;color:var(--mist);letter-spacing:1px}
+.toast{position:fixed;bottom:2rem;right:2rem;background:var(--card);border:1px solid rgba(232,184,75,.3);color:var(--cream);padding:12px 20px;border-radius:4px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;transform:translateY(80px);transition:transform .3s;z-index:1000}
+.toast.show{transform:translateY(0)}
+.toast.success{border-color:rgba(39,174,96,.4);color:#27AE60}
+@media(max-width:768px){.app{grid-template-columns:1fr}.sidebar{display:none}.stats-row{grid-template-columns:1fr 1fr}.form-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <a href="index.html" class="logo">Doors<span>bid</span></a>
+    <div class="logo-sub">Verkäufer Dashboard</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Übersicht</div>
+    <a class="nav-item active" onclick="showSection('overview',this)"><span class="nav-icon">📊</span> Übersicht</a>
+    <a class="nav-item" onclick="showSection('auctions',this)"><span class="nav-icon">🚪</span> Meine Auktionen<span class="nav-badge">2</span></a>
+    <a class="nav-item" onclick="showSection('create',this)"><span class="nav-icon">➕</span> Neue Auktion</a>
+    <div class="nav-section">Finanzen</div>
+    <a class="nav-item" onclick="showSection('earnings',this)"><span class="nav-icon">💰</span> Einnahmen</a>
+    <a class="nav-item" onclick="showSection('activity',this)"><span class="nav-icon">🔔</span> Aktivitäten<span class="nav-badge">3</span></a>
+    <div class="nav-section">Konto</div>
+    <a class="nav-item" href="index.html"><span class="nav-icon">🌐</span> Zur Website</a>
+    <a class="nav-item" href="auktion.html"><span class="nav-icon">🚪</span> Auktion ansehen</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="seller-info">
+      <div class="seller-avatar">M</div>
+      <div><div class="seller-name">Michel</div><div class="seller-type">Verkäufer · Brig</div></div>
+    </div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="page-title" id="pageTitle">Übersicht</div>
+    <div class="topbar-right">
+      <button class="btn btn-ghost" onclick="showSection('auctions',null)">Meine Auktionen</button>
+      <button class="btn btn-primary" onclick="showSection('create',null)">+ Neue Auktion</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- OVERVIEW -->
+    <div id="sec-overview">
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-label">Aktive Auktionen</div><div class="stat-value gold">2</div><div class="stat-sub">1 endet in 2h</div></div>
+        <div class="stat-card"><div class="stat-label">Gesamteinnahmen</div><div class="stat-value green">CHF 4'820</div><div class="stat-sub">nach 10% Provision</div></div>
+        <div class="stat-card"><div class="stat-label">Totale Gebote</div><div class="stat-value">143</div><div class="stat-sub">alle Auktionen</div></div>
+        <div class="stat-card"><div class="stat-label">Tür-Öffnungen</div><div class="stat-value">891</div><div class="stat-sub">letzte 30 Tage</div></div>
+      </div>
+      <div class="section">
+        <div class="section-head"><div class="section-title">Aktive Auktionen</div><div class="section-tag">Live jetzt</div></div>
+        <table class="auctions-table">
+          <thead><tr><th>Tür</th><th>Auktion</th><th>Status</th><th>Aktuelles Gebot</th><th>Endet</th><th>Aktionen</th></tr></thead>
+          <tbody>
+            <tr><td><div class="auction-door">#47</div></td><td><div class="auction-title">Lagerraum #47</div><div class="auction-loc">Brig, Wallis</div></td><td><span class="status-badge status-active">● Live</span></td><td><div class="bid-price">CHF 340</div><div class="bid-count">8 Gebote · 5 Bieter</div></td><td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--mist)">in 2h 14m</td><td><div class="action-btns"><button class="action-btn" onclick="showSection('create',null)">Bearbeiten</button><button class="action-btn" onclick="window.open('auktion.html')">Ansehen</button><button class="action-btn del" onclick="del(1)">Löschen</button></div></td></tr>
+            <tr><td><div class="auction-door">#12</div></td><td><div class="auction-title">Garage #12</div><div class="auction-loc">Visp, Wallis</div></td><td><span class="status-badge status-active">● Live</span></td><td><div class="bid-price">CHF 520</div><div class="bid-count">12 Gebote · 7 Bieter</div></td><td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--mist)">in 5h 42m</td><td><div class="action-btns"><button class="action-btn" onclick="showSection('create',null)">Bearbeiten</button><button class="action-btn" onclick="window.open('auktion.html')">Ansehen</button><button class="action-btn del" onclick="del(2)">Löschen</button></div></td></tr>
+            <tr><td><div class="auction-door">#S</div></td><td><div class="auction-title">Vintage Schrank</div><div class="auction-loc">Sion, Wallis</div></td><td><span class="status-badge status-upcoming">⏳ Geplant</span></td><td><div class="bid-price">CHF 50</div><div class="bid-count">Startpreis</div></td><td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--mist)">morgen 10:00</td><td><div class="action-btns"><button class="action-btn" onclick="showSection('create',null)">Bearbeiten</button><button class="action-btn del" onclick="del(3)">Löschen</button></div></td></tr>
+            <tr><td><div class="auction-door">#3</div></td><td><div class="auction-title">Container #3</div><div class="auction-loc">Brig, Wallis</div></td><td><span class="status-badge status-ended">✓ Beendet</span></td><td><div class="bid-price">CHF 3'400</div><div class="bid-count">19 Gebote · Gewinner: user_brig</div></td><td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--mist)">vor 2 Tagen</td><td><div class="action-btns"><button class="action-btn" onclick="toast('Details geladen','')">Details</button></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="section">
+        <div class="section-head"><div class="section-title">Letzte Aktivitäten</div><div class="section-tag">Echtzeit</div></div>
+        <div class="activity-list">
+          <div class="activity-item"><div class="activity-dot bid"></div><div class="activity-text"><span>user_zürich82</span> hat CHF 340 auf Lagerraum #47 geboten</div><div class="activity-time">vor 3 Min</div></div>
+          <div class="activity-item"><div class="activity-dot open"></div><div class="activity-text">Tür #47 wurde <span>8× geöffnet</span> in letzter Stunde</div><div class="activity-time">laufend</div></div>
+          <div class="activity-item"><div class="activity-dot bid"></div><div class="activity-text"><span>max_bern</span> hat CHF 520 auf Garage #12 geboten</div><div class="activity-time">vor 12 Min</div></div>
+          <div class="activity-item"><div class="activity-dot win"></div><div class="activity-text"><span>user_brig</span> hat Container #3 für CHF 3'400 gewonnen</div><div class="activity-time">vor 2 Tagen</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CREATE -->
+    <div id="sec-create" style="display:none">
+      <div class="section">
+        <div class="section-head"><div class="section-title">Neue Auktion erstellen</div><div class="section-tag">Alle Pflichtfelder ausfüllen</div></div>
+        <div class="form-card">
+          <div class="form-grid">
+            <div class="form-group"><label class="form-label">Titel *</label><input type="text" class="form-input" placeholder="z.B. Lagerraum #47 – Brig" id="fTitle"/></div>
+            <div class="form-group"><label class="form-label">Tür-Nummer *</label><input type="text" class="form-input" placeholder="z.B. 47" id="fDoor" maxlength="4"/></div>
+            <div class="form-group"><label class="form-label">Standort *</label><input type="text" class="form-input" placeholder="z.B. Brig, Wallis" id="fLocation"/></div>
+            <div class="form-group"><label class="form-label">Kategorie</label><select class="form-select" id="fCat"><option value="garage">Garage</option><option value="lager">Lagerraum</option><option value="container">Container</option><option value="schrank">Schrank / Möbel</option><option value="estrich">Estrich / Keller</option><option value="sonstiges">Sonstiges</option></select></div>
+            <div class="form-group full"><label class="form-label">Beschreibung</label><textarea class="form-textarea" id="fDesc" placeholder="Was befindet sich dahinter? Sei ehrlich – Käufer vertrauen auf deine Beschreibung."></textarea></div>
+            <div class="form-group"><label class="form-label">Startpreis (CHF)</label><input type="number" class="form-input" placeholder="0" id="fPrice" min="0" step="10"/></div>
+            <div class="form-group"><label class="form-label">Mindest-Bietschritt (CHF)</label><input type="number" class="form-input" value="20" id="fStep" min="5" step="5"/></div>
+            <div class="form-group"><label class="form-label">Auktion startet am</label><input type="datetime-local" class="form-input" id="fStart"/></div>
+            <div class="form-group"><label class="form-label">Auktion endet am</label><input type="datetime-local" class="form-input" id="fEnd"/></div>
+            <div class="form-group full">
+              <label class="form-label">Tür-Anzeige-Dauer</label>
+              <div style="display:flex;align-items:center;gap:14px;padding:12px 16px;border:1px solid var(--border);border-radius:2px;background:rgba(232,184,75,.06)">
+                <span style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;color:var(--gold)">30</span>
+                <div>
+                  <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--cream)">Sekunden – Standard</div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--mist);margin-top:3px">Alle Auktionen auf Doorsbid laufen mit 30 Sekunden Tür-Öffnung.</div>
+                </div>
+              </div>
+            </div>
+            <div class="form-group full">
+              <label class="form-label">Fotos hochladen (min. 3, max. 10)</label>
+              <div class="upload-zone" onclick="document.getElementById('fFiles').click()">
+                <span class="upload-icon">📷</span>
+                <div class="upload-text">Fotos hier ablegen oder klicken zum Hochladen</div>
+                <div class="upload-sub">JPG, PNG · max. 5MB pro Bild · Mindestens 3 Fotos</div>
+                <div class="upload-preview" id="uploadPreview">
+                  <div class="preview-placeholder">🏚️</div>
+                  <div class="preview-placeholder">📦</div>
+                  <div class="preview-placeholder">🔍</div>
+                </div>
+              </div>
+              <input type="file" id="fFiles" multiple accept="image/*" style="display:none" onchange="handleFiles(this)"/>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-ghost" onclick="showSection('overview',null)">Abbrechen</button>
+            <button class="btn btn-ghost" onclick="toast('Entwurf gespeichert.','')">Als Entwurf speichern</button>
+            <button class="btn btn-primary" onclick="publish()">Auktion veröffentlichen →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AUCTIONS -->
+    <div id="sec-auctions" style="display:none">
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-label">Live</div><div class="stat-value gold">2</div></div>
+        <div class="stat-card"><div class="stat-label">Geplant</div><div class="stat-value">1</div></div>
+        <div class="stat-card"><div class="stat-label">Entwürfe</div><div class="stat-value">0</div></div>
+        <div class="stat-card"><div class="stat-label">Beendet</div><div class="stat-value">1</div></div>
+      </div>
+      <div class="section">
+        <div class="section-head"><div class="section-title">Alle Auktionen</div><button class="btn btn-primary" onclick="showSection('create',null)">+ Neue Auktion</button></div>
+        <table class="auctions-table">
+          <thead><tr><th>Tür</th><th>Auktion</th><th>Status</th><th>Gebot</th><th>Endet</th><th>Aktionen</th></tr></thead>
+          <tbody>
+            <tr><td><div class="auction-door">#47</div></td><td><div class="auction-title">Lagerraum #47</div><div class="auction-loc">Brig, Wallis</div></td><td><span class="status-badge status-active">● Live</span></td><td><div class="bid-price">CHF 340</div><div class="bid-count">8 Gebote</div></td><td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--mist)">in 2h 14m</td><td><div class="action-btns"><button class="action-btn" onclick="showSection('create',null)">Bearbeiten</button><button class="action-btn del" onclick="del(1)">Löschen</button></div></td></tr>
+            <tr><td><div class="auction-door">#12</div></td><td><div class="auction-title">Garage #12</div><div class="auction-loc">Visp, Wallis</div></td><td><span class="status-badge status-active">● Live</span></td><td><div class="bid-price">CHF 520</div><div class="bid-count">12 Gebote</div></td><td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--mist)">in 5h 42m</td><td><div class="action-btns"><button class="action-btn" onclick="showSection('create',null)">Bearbeiten</button><button class="action-btn del" onclick="del(2)">Löschen</button></div></td></tr>
+            <tr><td><div class="auction-door">#S</div></td><td><div class="auction-title">Vintage Schrank</div><div class="auction-loc">Sion, Wallis</div></td><td><span class="status-badge status-upcoming">⏳ Geplant</span></td><td><div class="bid-price">CHF 50</div><div class="bid-count">Startpreis</div></td><td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--mist)">morgen 10:00</td><td><div class="action-btns"><button class="action-btn" onclick="showSection('create',null)">Bearbeiten</button><button class="action-btn del" onclick="del(3)">Löschen</button></div></td></tr>
+            <tr><td><div class="auction-door">#3</div></td><td><div class="auction-title">Container #3</div><div class="auction-loc">Brig, Wallis</div></td><td><span class="status-badge status-ended">✓ Beendet</span></td><td><div class="bid-price">CHF 3'400</div><div class="bid-count">19 Gebote</div></td><td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--mist)">vor 2 Tagen</td><td><div class="action-btns"><button class="action-btn">Details</button></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- EARNINGS -->
+    <div id="sec-earnings" style="display:none">
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-label">Brutto-Einnahmen</div><div class="stat-value gold">CHF 5'355</div><div class="stat-sub">alle Auktionen</div></div>
+        <div class="stat-card"><div class="stat-label">Provision 10%</div><div class="stat-value" style="color:var(--red)">CHF 535</div><div class="stat-sub">automatisch abgezogen</div></div>
+        <div class="stat-card"><div class="stat-label">Netto-Auszahlung</div><div class="stat-value green">CHF 4'820</div><div class="stat-sub">auf dein Konto</div></div>
+        <div class="stat-card"><div class="stat-label">Ausstehend</div><div class="stat-value">CHF 3'060</div><div class="stat-sub">laufende Auktionen</div></div>
+      </div>
+      <div class="section">
+        <div class="section-head"><div class="section-title">Transaktionen</div></div>
+        <table class="auctions-table">
+          <thead><tr><th>Datum</th><th>Auktion</th><th>Höchstgebot</th><th>Provision</th><th>Auszahlung</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--mist)">16.04.2025</td><td>Container #3</td><td style="color:var(--gold);font-family:'DM Mono',monospace">CHF 3'400</td><td style="color:var(--red);font-family:'DM Mono',monospace">CHF 340</td><td style="color:#27AE60;font-family:'DM Mono',monospace">CHF 3'060</td><td><span class="status-badge status-active">Bezahlt</span></td></tr>
+            <tr><td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--mist)">10.04.2025</td><td>Estrich #E</td><td style="color:var(--gold);font-family:'DM Mono',monospace">CHF 1'200</td><td style="color:var(--red);font-family:'DM Mono',monospace">CHF 120</td><td style="color:#27AE60;font-family:'DM Mono',monospace">CHF 1'080</td><td><span class="status-badge status-active">Bezahlt</span></td></tr>
+            <tr><td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--mist)">02.04.2025</td><td>Garage #8</td><td style="color:var(--gold);font-family:'DM Mono',monospace">CHF 755</td><td style="color:var(--red);font-family:'DM Mono',monospace">CHF 75</td><td style="color:#27AE60;font-family:'DM Mono',monospace">CHF 680</td><td><span class="status-badge status-active">Bezahlt</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ACTIVITY -->
+    <div id="sec-activity" style="display:none">
+      <div class="section">
+        <div class="section-head"><div class="section-title">Alle Aktivitäten</div><div class="section-tag">Echtzeit</div></div>
+        <div class="activity-list">
+          <div class="activity-item"><div class="activity-dot bid"></div><div class="activity-text"><span>user_zürich82</span> hat CHF 340 auf Lagerraum #47 geboten</div><div class="activity-time">vor 3 Min</div></div>
+          <div class="activity-item"><div class="activity-dot open"></div><div class="activity-text">Tür #47 wurde von <span>collector99</span> geöffnet</div><div class="activity-time">vor 5 Min</div></div>
+          <div class="activity-item"><div class="activity-dot bid"></div><div class="activity-text"><span>max_bern</span> hat CHF 520 auf Garage #12 geboten</div><div class="activity-time">vor 12 Min</div></div>
+          <div class="activity-item"><div class="activity-dot open"></div><div class="activity-text">Tür #12 wurde von <span>hunter_vs</span> geöffnet</div><div class="activity-time">vor 18 Min</div></div>
+          <div class="activity-item"><div class="activity-dot open"></div><div class="activity-text">Tür #47 wurde von <span>user_brig</span> geöffnet</div><div class="activity-time">vor 24 Min</div></div>
+          <div class="activity-item"><div class="activity-dot win"></div><div class="activity-text"><span>user_brig</span> hat Container #3 für CHF 3'400 gewonnen</div><div class="activity-time">vor 2 Tagen</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+</div>
+
+<div class="toast" id="toastEl"></div>
+
+<script>
+let timerSecs = 30;
+const secs = ['overview','create','auctions','earnings','activity'];
+const titles = {overview:'Übersicht',create:'Neue Auktion erstellen',auctions:'Meine Auktionen',earnings:'Einnahmen',activity:'Aktivitäten'};
+
+function showSection(name, navEl) {
+  secs.forEach(s => {
+    const el = document.getElementById('sec-'+s);
+    if(el) el.style.display = s===name ? 'block' : 'none';
+  });
+  document.getElementById('pageTitle').textContent = titles[name]||name;
+  if(navEl) {
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    navEl.classList.add('active');
+  }
+}
+
+function selTimer(el, s) {
+  document.querySelectorAll('.timer-opt').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+  timerSecs = s;
+}
+
+function handleFiles(input) {
+  const p = document.getElementById('uploadPreview');
+  p.innerHTML = '';
+  Array.from(input.files).slice(0,10).forEach(f => {
+    const r = new FileReader();
+    r.onload = e => {
+      const img = document.createElement('img');
+      img.src = e.target.result;
+      img.className = 'preview-img';
+      p.appendChild(img);
+    };
+    r.readAsDataURL(f);
+  });
+}
+
+function publish() {
+  const t = document.getElementById('fTitle').value;
+  const d = document.getElementById('fDoor').value;
+  const l = document.getElementById('fLocation').value;
+  if(!t||!d||!l){toast('Bitte Titel, Tür-Nummer und Standort ausfüllen.','');return;}
+  toast('Wird veröffentlicht...','');
+  setTimeout(()=>{toast('Auktion veröffentlicht! 🚪','success');setTimeout(()=>showSection('overview',null),1200);},1000);
+}
+
+function del(id) {
+  if(confirm('Auktion wirklich löschen? Nicht rückgängig machbar.')) toast('Auktion gelöscht.','');
+}
+
+function toast(msg, type) {
+  const t = document.getElementById('toastEl');
+  t.textContent = msg;
+  t.className = 'toast show'+(type?' '+type:'');
+  clearTimeout(t._t);
+  t._t = setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// Set default datetimes
+const now = new Date();
+const p1 = d=>d.toISOString().slice(0,16);
+document.getElementById('fStart').value = p1(new Date(now.getTime()+3600000));
+document.getElementById('fEnd').value = p1(new Date(now.getTime()+90000000));
+</script>
+</body>
+</html>
