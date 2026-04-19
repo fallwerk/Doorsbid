@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Doorsbid – Zahlung</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet"/>
+<script src="https://js.stripe.com/v3/"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--black:#0A0806;--dark:#110D09;--amber:#C8821A;--gold:#E8B84B;--cream:#F5EDD8;--mist:#B8A898;--red:#C0392B;--green:#27AE60;--card:#1C1209;--border:rgba(232,184,75,.12)}
+html,body{min-height:100vh;font-family:'Crimson Pro',Georgia,serif;background:var(--black);color:var(--cream);display:flex;align-items:center;justify-content:center;padding:2rem 1rem}
+
+.wrap{width:min(480px,100%);animation:fadeUp .5s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* HEADER */
+.header{text-align:center;margin-bottom:2rem}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:4px;color:var(--cream);text-decoration:none;display:block;margin-bottom:4px}
+.logo span{color:var(--gold)}
+.header-sub{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--amber)}
+
+/* AUCTION SUMMARY */
+.auction-card{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:1.2rem 1.5rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem}
+.auction-door{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:3px;color:var(--gold);width:60px;text-align:center;flex-shrink:0}
+.auction-info{flex:1}
+.auction-title{font-size:16px;font-weight:400;color:var(--cream);margin-bottom:2px}
+.auction-loc{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--mist);text-transform:uppercase}
+.auction-price{text-align:right;flex-shrink:0}
+.price-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--mist);margin-bottom:2px}
+.price-amount{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;color:var(--gold)}
+
+/* BREAKDOWN */
+.breakdown{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:1.2rem 1.5rem;margin-bottom:1.5rem}
+.breakdown-row{display:flex;justify-content:space-between;align-items:center;padding:.5rem 0;border-bottom:1px solid rgba(232,184,75,.06)}
+.breakdown-row:last-child{border:none;padding-top:.8rem;margin-top:.4rem}
+.breakdown-label{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--mist);text-transform:uppercase}
+.breakdown-value{font-family:'DM Mono',monospace;font-size:13px;color:var(--cream)}
+.breakdown-total .breakdown-label{font-size:12px;color:var(--cream);font-weight:500}
+.breakdown-total .breakdown-value{font-size:18px;color:var(--gold);font-family:'Bebas Neue',sans-serif;letter-spacing:1px}
+
+/* PAYMENT FORM */
+.payment-card{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:1.5rem;margin-bottom:1.5rem}
+.form-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--mist);display:block;margin-bottom:8px}
+.form-group{margin-bottom:1.2rem}
+.form-input{width:100%;padding:12px 14px;background:rgba(245,237,216,.03);border:1px solid var(--border);color:var(--cream);font-family:'Crimson Pro',serif;font-size:15px;border-radius:2px;outline:none;transition:border-color .2s}
+.form-input:focus{border-color:rgba(232,184,75,.4)}
+.form-input::placeholder{color:rgba(184,168,152,.4)}
+
+/* STRIPE ELEMENT */
+.stripe-element{padding:12px 14px;background:rgba(245,237,216,.03);border:1px solid var(--border);border-radius:2px;transition:border-color .2s}
+.stripe-element.focused{border-color:rgba(232,184,75,.4)}
+.stripe-element-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--mist);display:block;margin-bottom:8px}
+
+/* PAY BUTTON */
+.pay-btn{width:100%;padding:15px;background:var(--gold);color:var(--black);border:none;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;cursor:pointer;border-radius:2px;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:10px}
+.pay-btn:hover{background:var(--amber)}
+.pay-btn:disabled{background:rgba(232,184,75,.2);color:rgba(232,184,75,.3);cursor:not-allowed}
+.pay-btn.loading{background:rgba(232,184,75,.6)}
+.spinner{width:16px;height:16px;border:2px solid rgba(0,0,0,.3);border-top-color:var(--black);border-radius:50%;animation:spin .6s linear infinite;display:none}
+.spinner.show{display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ERROR */
+.error-msg{background:rgba(192,57,43,.1);border:1px solid rgba(192,57,43,.3);color:#E74C3C;padding:10px 14px;border-radius:2px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;margin-bottom:1rem;display:none}
+.error-msg.show{display:block}
+
+/* SECURITY */
+.security{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:1rem}
+.security-text{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:rgba(184,168,152,.4)}
+.lock-icon{font-size:11px;opacity:.4}
+
+/* SUCCESS */
+.success-screen{display:none;text-align:center;padding:2rem}
+.success-screen.show{display:block}
+.success-icon{font-size:64px;margin-bottom:1rem;animation:popIn .5s ease both}
+@keyframes popIn{from{transform:scale(0)}to{transform:scale(1)}}
+.success-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:3px;color:var(--gold);margin-bottom:.5rem}
+.success-sub{font-size:16px;color:var(--mist);font-style:italic;line-height:1.6;margin-bottom:2rem}
+.success-details{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:1.2rem 1.5rem;margin-bottom:1.5rem;text-align:left}
+.success-row{display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid rgba(232,184,75,.06)}
+.success-row:last-child{border:none}
+.success-row-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--mist);text-transform:uppercase}
+.success-row-value{font-family:'DM Mono',monospace;font-size:11px;color:var(--cream)}
+.btn-back{display:inline-block;padding:12px 28px;background:transparent;color:var(--gold);border:1px solid rgba(232,184,75,.3);font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;border-radius:2px;text-decoration:none;transition:all .2s;cursor:pointer}
+.btn-back:hover{background:rgba(232,184,75,.08)}
+
+/* STRIPE BADGE */
+.stripe-badge{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:.8rem;opacity:.4}
+.stripe-badge svg{height:16px}
+.stripe-badge-text{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--mist)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="header">
+    <a href="index.html" class="logo">Doors<span>bid</span></a>
+    <div class="header-sub">Sichere Zahlung</div>
+  </div>
+
+  <!-- PAYMENT FORM -->
+  <div id="paymentForm">
+
+    <!-- AUCTION SUMMARY -->
+    <div class="auction-card">
+      <div class="auction-door" id="doorNum">#47</div>
+      <div class="auction-info">
+        <div class="auction-title" id="auctionTitle">Lagerraum #47 – Brig</div>
+        <div class="auction-loc" id="auctionLoc">Brig, Wallis · Abholung vor Ort</div>
+      </div>
+      <div class="auction-price">
+        <div class="price-label">Dein Gebot</div>
+        <div class="price-amount" id="bidDisplay">CHF 340</div>
+      </div>
+    </div>
+
+    <!-- PRICE BREAKDOWN -->
+    <div class="breakdown">
+      <div class="breakdown-row">
+        <div class="breakdown-label">Höchstgebot</div>
+        <div class="breakdown-value" id="breakBid">CHF 340.00</div>
+      </div>
+      <div class="breakdown-row">
+        <div class="breakdown-label">Käufer-Gebühr (0%)</div>
+        <div class="breakdown-value">CHF 0.00</div>
+      </div>
+      <div class="breakdown-row">
+        <div class="breakdown-label">Stripe Gebühr</div>
+        <div class="breakdown-value" id="breakFee">CHF 10.50</div>
+      </div>
+      <div class="breakdown-row breakdown-total">
+        <div class="breakdown-label">Total zu zahlen</div>
+        <div class="breakdown-value" id="breakTotal">CHF 350.50</div>
+      </div>
+    </div>
+
+    <!-- CONTACT -->
+    <div class="payment-card">
+      <div class="form-group">
+        <label class="form-label">Name</label>
+        <input type="text" class="form-input" id="buyerName" placeholder="Max Muster"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">E-Mail</label>
+        <input type="email" class="form-input" id="buyerEmail" placeholder="deine@email.ch"/>
+      </div>
+
+      <div class="form-group">
+        <label class="stripe-element-label">Kartendaten</label>
+        <div class="stripe-element" id="cardElement"></div>
+      </div>
+
+      <div class="error-msg" id="errorMsg"></div>
+
+      <button class="pay-btn" id="payBtn" onclick="handlePay()">
+        <div class="spinner" id="spinner"></div>
+        <span id="payBtnText">CHF 350.50 jetzt bezahlen</span>
+      </button>
+
+      <div class="security">
+        <span class="lock-icon">🔒</span>
+        <div class="security-text">256-bit SSL · Sicher durch Stripe</div>
+      </div>
+
+      <div class="stripe-badge">
+        <svg viewBox="0 0 60 25" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M59.6 13.3c0-4.6-2.2-8.2-6.4-8.2-4.3 0-6.9 3.6-6.9 8.2 0 5.4 3.1 8.1 7.5 8.1 2.1 0 3.8-.5 5-1.3v-3.6c-1.2.7-2.6 1.1-4.4 1.1-1.7 0-3.3-.6-3.5-2.8h8.7v-1.5zm-8.8-1.7c0-2.1 1.3-2.9 2.4-2.9 1.1 0 2.3.8 2.3 2.9h-4.7zm-11.3-6.5c-1.7 0-2.8.8-3.4 1.4l-.2-1.1h-3.8v21l4.3-1 .1-5.1c.6.5 1.6 1.1 3 1.1 3 0 5.8-2.4 5.8-7.8-.1-4.9-2.9-7.5-5.8-7.5zm-1 11.7c-1 0-1.6-.4-2-.8l-.1-5.9c.4-.5 1-.8 2.1-.8 1.6 0 2.7 1.8 2.7 3.7 0 2-.9 3.8-2.7 3.8zm-14.5-12.5l4.3-1V0l-4.3 1v3.3zm0 1.1h4.3v14.9h-4.3V5.4zm-4.7 1.3L18.9 5.4h-4.2v14.9h4.3V10.4c1-1.3 2.7-1.1 3.2-.9V5.4c-.5-.2-2.4-.5-3.9 1.3zM9.5 3.8L5.3 4.7 5.3 17c0 2.5 1.9 4.4 4.4 4.4 1.4 0 2.4-.3 2.9-.6v-3.5c-.5.2-3.1 1-3.1-1.5V9h3.1V5.4H9.5V3.8zM3.1 8.3C1.3 7.5 0 7 0 5.7 0 4.6 1 3.9 2.6 3.9c2 0 3.9.7 3.9.7V.8S4.9 0 2.6 0C1 0-1.5 1-1.5 4c0 2.6 1.8 3.8 4 4.7 2 .8 2.8 1.3 2.8 2.5 0 1.1-1 1.8-2.7 1.8-2 0-4.3-.9-4.3-.9v3.8s2.1.9 4.3.9c3.3 0 5.6-1.6 5.6-4.5 0-2.8-2-3.9-4.1-4.8" fill="currentColor"/></svg>
+        <div class="stripe-badge-text">Powered by Stripe</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SUCCESS SCREEN -->
+  <div class="success-screen" id="successScreen">
+    <div class="success-icon">🚪</div>
+    <div class="success-title">Zahlung erfolgreich!</div>
+    <div class="success-sub">Du hast die Auktion gewonnen. Der Verkäufer wird sich in Kürze bei dir melden für die Abholung.</div>
+    <div class="success-details">
+      <div class="success-row"><div class="success-row-label">Auktion</div><div class="success-row-value" id="confAuction">Lagerraum #47</div></div>
+      <div class="success-row"><div class="success-row-label">Betrag</div><div class="success-row-value" id="confAmount">CHF 340.00</div></div>
+      <div class="success-row"><div class="success-row-label">Bestätigung an</div><div class="success-row-value" id="confEmail">deine@email.ch</div></div>
+      <div class="success-row"><div class="success-row-label">Referenz</div><div class="success-row-value" id="confRef">DB-2025-001</div></div>
+    </div>
+    <button class="btn-back" onclick="window.location.href='auktion.html'">Weitere Auktionen entdecken →</button>
+  </div>
+
+</div>
+
+<script>
+const STRIPE_PK = 'pk_live_51TNtGVHyyF7Ul8C6XUQIYCAGXurvJzgkvt2Ex7OLEwVjsEpyyTGIwi1j2XoH3RWRpGH2T5jYW5cyy5fnDtqjghPF00rouo5EVZ';
+const stripe = Stripe(STRIPE_PK);
+const elements = stripe.elements({
+  appearance: {
+    theme: 'night',
+    variables: {
+      colorPrimary: '#E8B84B',
+      colorBackground: '#1C1209',
+      colorText: '#F5EDD8',
+      colorDanger: '#C0392B',
+      fontFamily: 'DM Mono, monospace',
+      borderRadius: '2px',
+      colorTextPlaceholder: 'rgba(184,168,152,0.4)',
+    }
+  }
+});
+
+const cardElement = elements.create('card', {
+  style: {
+    base: {
+      color: '#F5EDD8',
+      fontFamily: '"DM Mono", monospace',
+      fontSize: '14px',
+      '::placeholder': { color: 'rgba(184,168,152,0.4)' }
+    },
+    invalid: { color: '#E74C3C' }
+  }
+});
+cardElement.mount('#cardElement');
+cardElement.on('focus', () => document.getElementById('cardElement').classList.add('focused'));
+cardElement.on('blur', () => document.getElementById('cardElement').classList.remove('focused'));
+
+// Get auction data from URL params or localStorage
+const params = new URLSearchParams(window.location.search);
+const bidAmount = parseFloat(params.get('amount') || 340);
+const auctionId = params.get('auction') || '47';
+const auctionTitle = params.get('title') || 'Lagerraum #47 – Brig';
+
+// Update UI with auction data
+document.getElementById('doorNum').textContent = '#' + auctionId;
+document.getElementById('auctionTitle').textContent = auctionTitle;
+document.getElementById('bidDisplay').textContent = 'CHF ' + bidAmount.toFixed(2);
+document.getElementById('breakBid').textContent = 'CHF ' + bidAmount.toFixed(2);
+
+// Calculate Stripe fee (~3%)
+const stripeFee = Math.round(bidAmount * 0.029 * 100 + 30) / 100;
+const total = bidAmount + stripeFee;
+document.getElementById('breakFee').textContent = 'CHF ' + stripeFee.toFixed(2);
+document.getElementById('breakTotal').textContent = 'CHF ' + total.toFixed(2);
+document.getElementById('payBtnText').textContent = 'CHF ' + total.toFixed(2) + ' jetzt bezahlen';
+
+async function handlePay() {
+  const name = document.getElementById('buyerName').value.trim();
+  const email = document.getElementById('buyerEmail').value.trim();
+  const errEl = document.getElementById('errorMsg');
+
+  if(!name) { showError('Bitte Namen eingeben.'); return; }
+  if(!email || !email.includes('@')) { showError('Bitte gültige E-Mail eingeben.'); return; }
+
+  setLoading(true);
+  errEl.classList.remove('show');
+
+  try {
+    // Create PaymentMethod with Stripe
+    const { paymentMethod, error } = await stripe.createPaymentMethod({
+      type: 'card',
+      card: cardElement,
+      billing_details: { name, email }
+    });
+
+    if(error) {
+      showError(translateError(error.message));
+      setLoading(false);
+      return;
+    }
+
+    // NOTE: In production, send paymentMethod.id to your Vercel API endpoint
+    // which uses the Secret Key server-side to create a PaymentIntent
+    // Example: POST /api/create-payment-intent { paymentMethodId, amount, auctionId }
+
+    // For now, show success (demo mode)
+    // In production this would be: await confirmPayment(paymentMethod.id)
+    showSuccess(name, email);
+
+  } catch(e) {
+    showError('Verbindungsfehler. Bitte erneut versuchen.');
+    setLoading(false);
+  }
+}
+
+function showSuccess(name, email) {
+  document.getElementById('paymentForm').style.display = 'none';
+  document.getElementById('confAuction').textContent = auctionTitle;
+  document.getElementById('confAmount').textContent = 'CHF ' + bidAmount.toFixed(2);
+  document.getElementById('confEmail').textContent = email;
+  document.getElementById('confRef').textContent = 'DB-' + Date.now().toString().slice(-6);
+  document.getElementById('successScreen').classList.add('show');
+}
+
+function showError(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = msg;
+  el.classList.add('show');
+  setLoading(false);
+}
+
+function setLoading(loading) {
+  const btn = document.getElementById('payBtn');
+  const spinner = document.getElementById('spinner');
+  const text = document.getElementById('payBtnText');
+  btn.disabled = loading;
+  spinner.className = loading ? 'spinner show' : 'spinner';
+  btn.className = loading ? 'pay-btn loading' : 'pay-btn';
+  if(!loading) text.textContent = 'CHF ' + total.toFixed(2) + ' jetzt bezahlen';
+}
+
+function translateError(msg) {
+  const map = {
+    'Your card number is incomplete.': 'Kartennummer ist unvollständig.',
+    'Your card number is invalid.': 'Kartennummer ist ungültig.',
+    "Your card's expiration date is incomplete.": 'Ablaufdatum ist unvollständig.',
+    "Your card's security code is incomplete.": 'Sicherheitscode ist unvollständig.',
+    'Your card was declined.': 'Karte wurde abgelehnt.',
+    'Your card has insufficient funds.': 'Nicht genügend Guthaben auf der Karte.',
+  };
+  return map[msg] || msg;
+}
+</script>
+</body>
+</html>
