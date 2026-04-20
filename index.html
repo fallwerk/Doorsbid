@@ -204,7 +204,8 @@ footer{border-top:1px solid rgba(245,237,216,.06);padding:2rem 5rem;display:flex
           <div class="d-interior" style="position:relative">
             <div id="doorBg" style="position:absolute;inset:0;background-size:cover;background-position:center;border-radius:2px 2px 0 0;opacity:0;transition:opacity 0.8s ease 0.5s"></div>
             <div class="d-glow" id="dg"></div>
-            <div id="di" style="position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transition:opacity .6s ease .7s;border-radius:2px 2px 0 0">
+            <div id="di" style="position:absolute;inset:0;opacity:0;transition:opacity .6s ease .7s;border-radius:2px 2px 0 0">
+              <div id="diBg" style="position:absolute;inset:0;background-size:cover;background-position:center;border-radius:2px 2px 0 0"></div>
               <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(10,8,6,.95) 0%,rgba(10,8,6,.15) 60%,transparent 100%);border-radius:2px 2px 0 0"></div>
               <div style="position:absolute;bottom:0;left:0;right:0;padding:.8rem">
                 <div style="font-family:'DM Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:#C8821A;margin-bottom:3px" id="dloc">Brig, Wallis</div>
@@ -465,7 +466,8 @@ function openDoor(){
   const it=items[idx%items.length];
   // Set real photo
   const diEl=document.getElementById('di');
-  diEl.style.backgroundImage='url('+it.img+')';
+  const diBg=document.getElementById('diBg');
+  if(diBg && it.img) diBg.style.backgroundImage='url('+it.img+')';
   document.getElementById('dti').textContent=it.t;
   document.getElementById('dp').textContent='GEBOT: '+it.p;
   document.getElementById('dpl').textContent=it.n;
