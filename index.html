@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Doorsbid – Öffne die Tür. 30 Sekunden.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+:root{
+  --black:#0A0806;--dark:#110D09;--wood:#3D1F0D;
+  --amber:#C8821A;--gold:#E8B84B;--cream:#F5EDD8;
+  --mist:#B8A898;--red:#8B1A1A;
+}
+body{font-family:'Crimson Pro',Georgia,serif;background:var(--black);color:var(--cream);overflow-x:hidden}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:1.4rem 3rem;background:linear-gradient(to bottom,rgba(10,8,6,.97),transparent)}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;color:var(--cream)}
+.logo span{color:var(--gold)}
+.nav-right{display:flex;align-items:center;gap:2rem}
+.nav-link{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--mist);text-decoration:none;transition:color .2s}
+.nav-link:hover{color:var(--gold)}
+.nav-btn{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:10px 22px;border:1px solid var(--gold);color:var(--gold);background:transparent;cursor:pointer;transition:all .25s;text-decoration:none}
+.nav-btn:hover{background:var(--gold);color:var(--black)}
+
+/* HERO */
+.hero{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;align-items:center;padding:0 5rem;gap:4rem;position:relative;overflow:hidden}
+.hero-bg{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.bg-line{position:absolute;top:0;bottom:0;width:1px;background:linear-gradient(to bottom,transparent,rgba(232,184,75,.06),transparent);animation:lf 4s ease-in-out infinite}
+.bg-line:nth-child(1){left:16.6%}.bg-line:nth-child(2){left:33.3%;animation-delay:.5s}.bg-line:nth-child(3){left:50%;animation-delay:1s}.bg-line:nth-child(4){left:66.6%;animation-delay:1.5s}.bg-line:nth-child(5){left:83.3%;animation-delay:2s}
+@keyframes lf{0%,100%{opacity:.3}50%{opacity:1}}
+.hero-left{position:relative;z-index:2;animation:hi 1s ease both}
+.hero-right{display:flex;justify-content:center;align-items:center;position:relative;z-index:2;animation:hi 1s .2s ease both}
+@keyframes hi{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+
+.eyebrow{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--amber);display:flex;align-items:center;gap:12px;margin-bottom:1.8rem}
+.eyebrow::before{content:'';display:block;width:40px;height:1px;background:var(--amber)}
+h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(64px,7vw,100px);line-height:.92;letter-spacing:2px;color:var(--cream);margin-bottom:.6rem}
+h1 .gold{color:var(--gold)}
+h1 .dim{color:var(--mist)}
+.sub{font-size:18px;line-height:1.7;color:var(--mist);font-weight:300;max-width:420px;margin:1.6rem 0 2.8rem;font-style:italic}
+
+/* FORM */
+.form-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--amber);margin-bottom:10px;display:block}
+.form-row{display:flex;max-width:440px}
+.fi{flex:1;padding:15px 18px;background:rgba(245,237,216,.04);border:1px solid rgba(232,184,75,.25);border-right:none;font-family:'Crimson Pro',serif;font-size:16px;color:var(--cream);outline:none;transition:border-color .2s}
+.fi::placeholder{color:rgba(184,168,152,.5)}
+.fi:focus{border-color:var(--gold)}
+.fb{padding:15px 28px;background:var(--gold);color:var(--black);border:none;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;cursor:pointer;transition:background .2s;white-space:nowrap}
+.fb:hover{background:var(--amber)}
+.form-note{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;color:rgba(184,168,152,.5);margin-top:10px;max-width:440px}
+.form-note b{color:var(--amber);font-weight:400}
+.sbox{display:none;padding:1.2rem 1.6rem;border:1px solid rgba(232,184,75,.3);background:rgba(232,184,75,.05);font-size:17px;color:var(--gold);font-style:italic;margin-top:8px;max-width:440px}
+.sbox.show{display:block}
+
+/* DOOR */
+.door-stage{position:relative;width:280px;height:380px;cursor:pointer}
+.d-shadow{position:absolute;bottom:-16px;left:50%;transform:translateX(-50%);width:180px;height:24px;background:radial-gradient(ellipse,rgba(200,130,26,.25),transparent 70%);filter:blur(8px)}
+.d-outer{position:absolute;inset:0;border:10px solid #2A1408;border-radius:4px 4px 0 0;background:#130904;box-shadow:inset 0 0 40px rgba(0,0,0,.8),0 0 0 1px rgba(200,130,26,.12)}
+.d-interior{position:absolute;inset:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;overflow:hidden}
+.d-glow{position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(200,130,26,.15),transparent 70%);opacity:0;transition:opacity 1s}
+.d-glow.on{opacity:1}
+.d-items{display:flex;flex-direction:column;align-items:center;gap:8px;opacity:0;transform:scale(.9);transition:opacity .5s ease .7s,transform .5s ease .7s}
+.d-items.show{opacity:1!important;transform:scale(1)}
+.d-emoji{font-size:48px;filter:drop-shadow(0 0 16px rgba(232,184,75,.4))}
+.d-ititle{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;color:var(--gold);text-align:center}
+.d-iprice{font-family:'DM Mono',monospace;font-size:11px;color:var(--mist);letter-spacing:2px}
+.d-leaf{position:absolute;inset:10px;background:linear-gradient(135deg,#5C2E12,#3D1F0D 40%,#2A1408);border-radius:2px 2px 0 0;transform-origin:left center;transform:perspective(800px) rotateY(0deg);transition:transform 2.5s cubic-bezier(.4,0,.15,1);box-shadow:inset -4px 0 12px rgba(0,0,0,.4)}
+.d-leaf.open{transform:perspective(800px) rotateY(-80deg)}
+.d-pt{position:absolute;top:16px;left:16px;right:16px;bottom:55%;border:1px solid rgba(255,255,255,.07)}
+.d-pb{position:absolute;top:47%;left:16px;right:16px;bottom:16px;border:1px solid rgba(255,255,255,.07)}
+.d-plate{position:absolute;top:20px;left:50%;transform:translateX(-50%);background:var(--amber);padding:2px 10px;font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:3px;color:var(--black)}
+.d-knob{position:absolute;right:20px;top:50%;transform:translateY(-50%);width:13px;height:13px;background:var(--gold);border-radius:50%;box-shadow:0 0 0 3px rgba(232,184,75,.2)}
+.d-timer{position:absolute;top:-18px;right:-18px;width:60px;height:60px;display:none}
+.d-timer.show{display:block}
+.d-timer svg{transform:rotate(-90deg)}
+.d-circle{fill:none;stroke:var(--red);stroke-width:2;stroke-dasharray:150;stroke-dashoffset:0;transition:stroke-dashoffset 1s linear}
+.d-tnum{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:19px;color:var(--cream)}
+.d-hint{position:absolute;bottom:-44px;left:50%;transform:translateX(-50%);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(184,168,152,.45);white-space:nowrap;display:flex;align-items:center;gap:8px}
+.ha{animation:ab 1.8s infinite}
+@keyframes ab{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+
+/* STATS */
+.stats-bar{border-top:1px solid rgba(245,237,216,.06);border-bottom:1px solid rgba(245,237,216,.06);display:flex}
+.si{flex:1;text-align:center;padding:2rem 1rem;border-right:1px solid rgba(245,237,216,.06)}
+.si:last-child{border:none}
+.sn{font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:2px;color:var(--gold);display:block}
+.sl{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--mist);margin-top:4px}
+
+/* HOW */
+.how{padding:6rem 5rem;max-width:1200px;margin:0 auto}
+.stag{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--amber);display:flex;align-items:center;gap:12px;margin-bottom:1rem}
+.stag::after{content:'';width:50px;height:1px;background:var(--amber)}
+.stitle{font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:2px;color:var(--cream);line-height:.95;margin-bottom:3rem}
+.stitle em{color:var(--gold);font-style:italic;font-family:'Crimson Pro',serif;font-size:46px}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(245,237,216,.06)}
+.step{background:var(--black);padding:2.5rem 2rem;position:relative;overflow:hidden;transition:background .3s}
+.step:hover{background:rgba(245,237,216,.02)}
+.step-n{font-family:'Bebas Neue',sans-serif;font-size:90px;color:rgba(245,237,216,.03);position:absolute;top:-10px;right:8px;line-height:1;pointer-events:none}
+.step-icon{font-size:30px;margin-bottom:1.2rem;display:block}
+.step-t{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--cream);margin-bottom:.8rem}
+.step-d{font-size:16px;line-height:1.7;color:var(--mist);font-weight:300}
+.step-bar{position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(to right,var(--amber),transparent);transform:scaleX(0);transform-origin:left;transition:transform .4s}
+.step:hover .step-bar{transform:scaleX(1)}
+
+/* WHO */
+.who{padding:5rem;background:linear-gradient(135deg,#110D09,#1A0E06 50%,#110D09);border-top:1px solid rgba(232,184,75,.08);border-bottom:1px solid rgba(232,184,75,.08)}
+.who-in{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center}
+.who-t{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:2px;line-height:.95;margin-bottom:1.4rem}
+.who-t em{display:block;color:var(--gold);font-style:italic;font-family:'Crimson Pro',serif;font-size:40px}
+.who-s{font-size:17px;line-height:1.75;color:var(--mist);font-weight:300;font-style:italic}
+.wcards{display:flex;flex-direction:column;gap:1px;background:rgba(232,184,75,.1)}
+.wcard{background:#110D09;padding:1.4rem 1.8rem;border-left:3px solid transparent;transition:all .3s}
+.wcard:hover{background:#1A1208;border-left-color:var(--amber)}
+.wc-t{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:2px;color:var(--cream);margin-bottom:3px}
+.wc-d{font-size:15px;color:var(--mist);font-weight:300}
+
+/* CTA */
+.cta{padding:8rem 5rem;text-align:center;position:relative;overflow:hidden}
+.cta-bg{position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(200,130,26,.07),transparent 70%);pointer-events:none}
+.cta-in{position:relative;z-index:1;max-width:620px;margin:0 auto}
+.ctag{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--amber);margin-bottom:1.5rem;display:flex;align-items:center;justify-content:center;gap:12px}
+.ctag::before,.ctag::after{content:'';display:block;width:40px;height:1px;background:var(--amber)}
+.ch2{font-family:'Bebas Neue',sans-serif;font-size:clamp(52px,6vw,78px);letter-spacing:3px;line-height:.92;color:var(--cream);margin-bottom:.8rem}
+.ch2 span{color:var(--gold)}
+.csub{font-size:18px;color:var(--mist);font-weight:300;font-style:italic;line-height:1.7;margin-bottom:2.5rem}
+.cform{max-width:480px;margin:0 auto}
+.csuccess{display:none;font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;color:var(--gold);padding:1.8rem;border:1px solid rgba(232,184,75,.2);margin-top:1rem}
+.csuccess.show{display:block}
+
+/* FOOTER */
+footer{border-top:1px solid rgba(245,237,216,.06);padding:2rem 5rem;display:flex;align-items:center;justify-content:space-between}
+.fl{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;color:var(--cream)}
+.fl span{color:var(--gold)}
+.fc{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;color:rgba(184,168,152,.35)}
+
+/* MOBILE */
+@media(max-width:768px){
+  nav{padding:1rem 1.5rem}
+  .nav-link{display:none}
+  .hero{grid-template-columns:1fr;padding:5rem 1.5rem 3rem;text-align:center}
+  .eyebrow{justify-content:center}
+  .sub{margin:1.6rem auto 2rem}
+  .form-row{flex-direction:column}
+  .fi{border-right:1px solid rgba(232,184,75,.25);border-bottom:none}
+  .hero-right{display:flex;justify-content:center;margin-top:1rem;margin-bottom:2rem}
+  .door-stage{width:200px;height:280px}
+  .d-outer{border-width:8px}
+  .d-leaf{background:linear-gradient(135deg,#5C2E12,#3D1F0D 40%,#2A1408)}
+  .d-hint{font-size:9px;bottom:-36px}
+  .stats-bar{flex-wrap:wrap}
+  .si{min-width:50%}
+  .how,.who .who-in,.cta{padding:4rem 1.5rem}
+  .steps{grid-template-columns:1fr}
+  .who-in{grid-template-columns:1fr!important;gap:3rem}
+  footer{flex-direction:column;gap:1rem;padding:1.5rem;text-align:center}
+}
+.big-cd{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:500;opacity:0;transition:opacity .2s}
+.big-cd.show{opacity:1}
+.big-cd-num{font-family:'Bebas Neue',sans-serif;font-size:260px;color:#C8821A;line-height:1;opacity:.13;letter-spacing:-8px;animation:bigPulse .9s ease-in-out infinite}
+@keyframes bigPulse{0%,100%{transform:scale(.92);opacity:.08}50%{transform:scale(1.06);opacity:.2}}
+.d-leaf{transform-origin:left center;transform:perspective(800px) rotateY(0deg);transition:transform 2.2s cubic-bezier(0.25,0.46,0.45,0.94)!important}
+.d-leaf.open{transform:perspective(800px) rotateY(-105deg)!important}
+</style>
+</head>
+<body>
+
+<nav>
+  <div><div class="logo">Doors<span>bid</span></div><div style="font-family:'DM Mono',monospace;font-size:8px;letter-spacing:3px;color:var(--amber);margin-top:2px">THRILL WITH THE BID</div></div>
+  <div class="nav-right">
+    <a href="#how" class="nav-link">Konzept</a>
+    <a href="#who" class="nav-link">Für wen</a>
+    <a href="#cta" class="nav-btn">Early Access</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg">
+    <div class="bg-line"></div><div class="bg-line"></div><div class="bg-line"></div><div class="bg-line"></div><div class="bg-line"></div>
+  </div>
+  <div class="hero-left">
+    <div class="eyebrow">Thrill with the Bid</div>
+    <h1>ÖFFNE<br>DIE <span class="gold">TÜR.</span><br><span class="dim">30 SEK.</span></h1>
+    <p class="sub">Garagen, Container, Schränke – du siehst den Inhalt genau einmal. Dann schliesst die Tür für immer. Bieten oder passen – jetzt entscheiden.</p>
+    <span class="form-label">Früher Zugang — Sei dabei von Anfang an</span>
+    <div id="hf">
+      <div class="form-row">
+        <input type="email" class="fi" placeholder="deine@email.ch" id="he" name="EMAIL"/>
+        <button type="button" class="fb" onclick="handleSubmit('he','hs','hf')">ZUGANG SICHERN</button>
+      </div>
+      <div class="form-note">Kein Spam. <b id="cnt">247 Personen</b> sind bereits dabei.</div>
+    </div>
+    <div class="sbox" id="hs">Perfekt — du erhältst frühen Zugang zum Launch. 🔑</div>
+  </div>
+  <div class="hero-right">
+    <div style="position:relative;padding-bottom:60px">
+      <div class="door-stage" id="ds" onclick="openDoor()">
+        <div class="d-shadow"></div>
+        <div class="d-outer">
+          <div class="d-interior" style="position:relative">
+            <div class="d-glow" id="dg"></div>
+            <div id="di" style="position:absolute;inset:0;opacity:0;transition:opacity .6s ease .7s;border-radius:2px 2px 0 0;overflow:hidden">
+              <img id="diBg" src="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block"/>
+              <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(10,8,6,.8) 0%,rgba(10,8,6,.1) 50%,transparent 100%);border-radius:2px 2px 0 0"></div>
+              <div style="position:absolute;bottom:0;left:0;right:0;padding:.8rem">
+                <div style="font-family:'DM Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:#C8821A;margin-bottom:3px" id="dloc">Brig, Wallis</div>
+                <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;color:#F5EDD8;margin-bottom:3px" id="dti">Lagerraum #47</div>
+                <div style="font-size:11px;color:#B8A898;font-style:italic;margin-bottom:6px;line-height:1.4" id="ddesc">Velos, Spielzeug, Tischfussball</div>
+                <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;color:#E8B84B" id="dp">GEBOT: CHF 340</div>
+              </div>
+            </div>
+          </div>
+          <div class="d-leaf" id="dl">
+            <div class="d-pt"></div><div class="d-pb"></div>
+            <div class="d-plate" id="dpl">47</div>
+            <div class="d-knob"></div>
+          </div>
+        </div>
+        <div class="d-timer" id="dt">
+          <svg width="60" height="60" viewBox="0 0 60 60">
+            <circle cx="30" cy="30" r="24" fill="rgba(10,8,6,.92)" stroke="rgba(139,26,26,.3)" stroke-width="1"/>
+            <circle class="d-circle" id="dc" cx="30" cy="30" r="24"/>
+          </svg>
+          <div class="d-tnum" id="dn">30</div>
+        </div>
+        <div class="d-hint"><span class="ha">↑</span>&nbsp;Tür antippen</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+
+
+<div class="stats-bar">
+  <div class="si"><span class="sn">30</span><div class="sl">Sekunden Blick</div></div>
+  <div class="si"><span class="sn">1×</span><div class="sl">Öffnen pro Tür</div></div>
+  <div class="si"><span class="sn" id="lc">247</span><div class="sl">Auf der Waitlist</div></div>
+  <div class="si"><span class="sn">CHF 0</span><div class="sl">Startkosten</div></div>
+</div>
+
+<!-- HOW -->
+<section class="how" id="how">
+  <div class="stag">Wie es funktioniert</div>
+  <div class="stitle">THRILL<br><em>with the Bid.</em></div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-n">1</div>
+      <span class="step-icon">🚪</span>
+      <div class="step-t">Tür öffnet sich</div>
+      <p class="step-d">Du klickst auf eine Auktion. Die virtuelle Tür öffnet sich. Fotos, Details, Zustand – alles sichtbar für exakt 30 Sekunden.</p>
+      <div class="step-bar"></div>
+    </div>
+    <div class="step">
+      <div class="step-n">2</div>
+      <span class="step-icon">⚡</span>
+      <div class="step-t">Jetzt entscheiden</div>
+      <p class="step-d">Jede Tür nur einmal öffenbar. Kein zweites Hinschauen. Bieten oder die Chance für immer verpassen.</p>
+      <div class="step-bar"></div>
+    </div>
+    <div class="step">
+      <div class="step-n">3</div>
+      <span class="step-icon">🏆</span>
+      <div class="step-t">Höchstes Gebot siegt</div>
+      <p class="step-d">Am Ende der Auktion holt der Höchstbietende seinen Schatz ab. Thrill with the Bid – du entscheidest, du gewinnst.</p>
+      <div class="step-bar"></div>
+    </div>
+  </div>
+</section>
+
+<!-- WHO -->
+<section class="who" id="who">
+  <div class="who-in">
+    <div>
+      <div class="stag">Für wen</div>
+      <div class="who-t">ALLES HINTER<br><em>einer Tür.</em></div>
+      <p class="who-s">Von der Garage bis zum Lagercontainer – Doorsbid ist für alle, die wissen, dass der wahre Wert oft verborgen liegt.</p>
+    </div>
+    <div class="wcards">
+      <div class="wcard"><div class="wc-t">🏠 Privatverkäufer</div><div class="wc-d">Garage, Estrich, Keller loswerden – ohne Flohmarkt, ohne Aufwand.</div></div>
+      <div class="wcard"><div class="wc-t">🏗️ Lagerunternehmen</div><div class="wc-d">Unbezahlte Einheiten automatisch und fair versteigern.</div></div>
+      <div class="wcard"><div class="wc-t">🔍 Schnäppchenjäger</div><div class="wc-d">Verborgene Schätze entdecken – der Nervenkitzel ist das Produkt.</div></div>
+      <div class="wcard"><div class="wc-t">♻️ Entrümpler &amp; Händler</div><div class="wc-d">Fundstücke direkt an Sammler verkaufen – ohne Mittelsmann.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta" id="cta">
+  <div class="cta-bg"></div>
+  <div class="cta-in">
+    <div class="ctag">Thrill with the Bid — Jetzt registrieren</div>
+    <div class="ch2">BEREIT FÜR<br>DEINE ERSTE <span>TÜR?</span></div>
+    <p class="csub">Doorsbid startet bald. Trag dich jetzt ein und erhalte als Erste/r Zugang – plus exklusive Infos zum Launch – als einer der Ersten dabei sein.</p>
+    <div class="cform">
+      <div id="cf">
+        <div class="form-row">
+          <input type="email" class="fi" placeholder="deine@email.ch" id="ce" name="EMAIL"/>
+          <button type="button" class="fb" onclick="handleSubmit('ce','cs','cf')">JETZT EINTRAGEN</button>
+        </div>
+        <div class="form-note" style="text-align:center;margin-top:12px">Kostenlos &nbsp;·&nbsp; Kein Spam &nbsp;·&nbsp; 🇨🇭 Made in Switzerland</div>
+      </div>
+      <div class="csuccess" id="cs">PERFEKT — WIR MELDEN UNS BALD! 🔑</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="fl">Doors<span>bid</span></div>
+  <div style="text-align:right"><div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--amber);margin-bottom:4px">THRILL WITH THE BID</div><div class="fc">© 2025 Doorsbid · Brig, Schweiz · doorsbidinfo@gmail.com</div></div>
+</footer>
+
+<script>
+// =============================================
+// DOORSBID – Supabase Verbindung
+// =============================================
+const SUPABASE_URL = 'https://mlbmedlxgzocjkdbtfdq.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sYm1lZGx4Z3pvY2prZGJ0ZmRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0Njg5OTMsImV4cCI6MjA5MjA0NDk5M30.p-lv7umuT9WtHkAzVjo7fcUI8ETQhmnxz5eZdXd-xkw';
+
+async function supabase(method, table, body = null, params = '') {
+  const url = `${SUPABASE_URL}/rest/v1/${table}${params}`;
+  const res = await fetch(url, {
+    method,
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': method === 'POST' ? 'return=representation' : ''
+    },
+    body: body ? JSON.stringify(body) : null
+  });
+  if (!res.ok) return null;
+  return method === 'HEAD' ? res.headers : res.json();
+}
+
+// Waitlist-Zähler aus Mailchimp-Datenbank simulieren
+// Echter Zähler kommt von der Auktions-Tabelle
+async function loadStats() {
+  try {
+    const data = await supabase('GET', 'auctions', null, '?select=count&status=eq.active');
+    if (data) {
+      const activeCount = Array.isArray(data) ? data.length : 0;
+      // Waitlist Zähler leicht animieren
+      animateCounter('lc', 247, 247 + activeCount);
+    }
+  } catch(e) {
+    console.log('Stats nicht verfügbar');
+  }
+}
+
+// Gebot speichern in Supabase
+async function saveBidToSupabase(auctionId, amount) {
+  try {
+    await supabase('POST', 'bids', {
+      auction_id: auctionId,
+      amount: amount,
+      bidder_id: null
+    });
+  } catch(e) {
+    console.log('Bid nicht gespeichert:', e);
+  }
+}
+
+// Tür-Öffnung tracken (IP-Schutz)
+async function trackDoorOpen(auctionId) {
+  try {
+    await supabase('POST', 'door_opens', {
+      auction_id: auctionId,
+      user_id: null,
+      ip_address: 'anonymous'
+    });
+  } catch(e) {
+    console.log('Door open nicht getrackt');
+  }
+}
+
+// Counter Animation
+function animateCounter(id, from, to) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  let current = from;
+  const step = Math.ceil((to - from) / 20);
+  const timer = setInterval(() => {
+    current = Math.min(current + step, to);
+    el.textContent = current;
+    if (current >= to) clearInterval(timer);
+  }, 50);
+}
+
+// Aktive Auktionen laden und anzeigen
+async function loadActiveAuction() {
+  try {
+    const data = await supabase('GET', 'auctions', null, 
+      '?status=eq.active&order=created_at.desc&limit=1');
+    if (data && data.length > 0) {
+      const auction = data[0];
+      // Tür-Nummer aktualisieren
+      const plate = document.querySelector('.d-plate');
+      if (plate) plate.textContent = auction.door_number || '47';
+      // Titel aktualisieren
+      const dti = document.getElementById('dti');
+      if (dti) dti.textContent = auction.title || 'Lagerraum #47';
+      // Preis aktualisieren
+      const dp = document.getElementById('dp');
+      if (dp) dp.textContent = 'GEBOT: CHF ' + Math.round(auction.current_price || 0);
+      // Stats
+      const el = document.getElementById('lc');
+      if (el) el.textContent = '247';
+    }
+  } catch(e) {
+    console.log('Auktion nicht geladen:', e);
+  }
+}
+
+// Echtzeit Gebote – live updates
+async function subscribeToLiveBids() {
+  // Supabase Realtime via WebSocket
+  const ws = new WebSocket(
+    `wss://mlbmedlxgzocjkdbtfdq.supabase.co/realtime/v1/websocket?apikey=${SUPABASE_KEY}&vsn=1.0.0`
+  );
+  ws.onopen = () => {
+    ws.send(JSON.stringify({
+      topic: 'realtime:public:bids',
+      event: 'phx_join',
+      payload: {},
+      ref: '1'
+    }));
+  };
+  ws.onmessage = (msg) => {
+    try {
+      const data = JSON.parse(msg.data);
+      if (data.event === 'INSERT' && data.payload?.record) {
+        const bid = data.payload.record;
+        // Preis live aktualisieren
+        const dp = document.getElementById('dp');
+        if (dp) dp.textContent = 'GEBOT: CHF ' + Math.round(bid.amount);
+      }
+    } catch(e) {}
+  };
+}
+
+// Beim Laden starten
+document.addEventListener('DOMContentLoaded', () => {
+  loadActiveAuction();
+  loadStats();
+  subscribeToLiveBids();
+});
+
+const items=[
+  {img:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&q=75', t:'Lagerraum #47 – Brig', loc:'Brig, Wallis', desc:'Velos, Spielzeug, Tischfussball – was steckt noch drin?', p:'CHF 340', n:'47'},
+  {img:'https://images.unsplash.com/photo-1518987048-93e29699e79a?w=500&q=75', t:'Garage – Brig', loc:'Brig, Wallis', desc:'Hanteln, Sportgeräte, Spielzeug – ein volles Lager.', p:'CHF 520', n:'12'},
+  {img:'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=500&q=75', t:'Vintage Schrank – Sion', loc:'Sion, Wallis', desc:'Kleider, Schuhe, Strickwaren – Vintage pur.', p:'CHF 85', n:'S'},
+  {img:'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=500&q=75', t:'Container #3 – Visp', loc:'Visp, Wallis', desc:'Werkzeug, Maschinen, Metall – Handwerker-Paradies.', p:'CHF 1.200', n:'3'}
+];
+let idx=0,isOpen=false,timerInt=null,sec=30;
+const circ=2*Math.PI*24;
+
+function openDoor(){
+  if(isOpen)return;
+  isOpen=true;
+  const it=items[idx%items.length];
+  // Set real photo
+  const diEl=document.getElementById('di');
+  const diBg=document.getElementById('diBg');
+  if(diBg && it.img){ diBg.src=it.img; }
+  document.getElementById('dti').textContent=it.t;
+  document.getElementById('dp').textContent='GEBOT: '+it.p;
+  document.getElementById('dpl').textContent=it.n;
+  // Hide emoji, show location
+  const locEl=document.getElementById('dloc');
+  if(locEl) locEl.textContent=it.loc;
+  const descEl=document.getElementById('ddesc');
+  if(descEl) descEl.textContent=it.desc;
+
+  // Tür schwingt komplett auf (105 Grad)
+  document.getElementById('dl').classList.add('open');
+  document.getElementById('dg').classList.add('on');
+  setTimeout(()=>{if(diEl) diEl.style.opacity='1';},600);
+
+  const tr=document.getElementById('dt'),dc=document.getElementById('dc'),dn=document.getElementById('dn');
+  const bigCd=document.getElementById('bigCd'),bigNum=document.getElementById('bigCdNum');
+  tr.classList.add('show');
+  sec=30; dn.textContent=sec; dc.style.strokeDashoffset=0;
+  bigCd.classList.remove('show');
+
+  timerInt=setInterval(()=>{
+    sec--;
+    dn.textContent=sec;
+    dc.style.strokeDashoffset=((30-sec)/30)*circ;
+
+    // Letzte 10 Sek – grosser Countdown
+    if(sec<=10 && sec>0){
+      bigNum.textContent=sec;
+      bigCd.classList.add('show');
+      dn.style.color='#C0392B';
+      dn.style.fontSize='20px';
+    }
+    if(sec<=0){
+      clearInterval(timerInt);
+      bigCd.classList.remove('show');
+      closeDoor();
+    }
+  },1000);
+}
+function closeDoor(){
+  // Tür schliesst sich wieder
+  document.getElementById('dl').classList.remove('open');
+  document.getElementById('dg').classList.remove('on');
+  document.getElementById('di').style.opacity='0';
+  document.getElementById('dt').classList.remove('show');
+  document.getElementById('bigCd').classList.remove('show');
+  const dn=document.getElementById('dn');
+  dn.style.color='';dn.style.fontSize='';
+  idx++;
+  setTimeout(()=>{ isOpen=false; },2500);
+}
+
+let count=247;
+
+function handleSubmit(eid,sid,fid){
+  const el=document.getElementById(eid);
+  if(!el.value||!el.value.includes('@')){
+    el.style.borderColor='#8B1A1A';
+    setTimeout(()=>el.style.borderColor='',1500);
+    return;
+  }
+  const email=el.value;
+
+  // Send to Mailchimp via JSONP (no page redirect)
+  const url='https://gmail.us1.list-manage.com/subscribe/post-json?u=51c65c018433e4758043c259d&id=6fa720a22c&f_id=0075c2e1f0&EMAIL='+encodeURIComponent(email)+'&b_51c65c018433e4758043c259d_6fa720a22c=&c=mailchimpCallback_'+fid;
+  const script=document.createElement('script');
+  script.src=url;
+  document.body.appendChild(script);
+
+  // Show success immediately (Mailchimp JSONP may be blocked by some browsers)
+  count++;
+  const c=document.getElementById('cnt');
+  if(c) c.textContent=count+' Personen';
+  document.getElementById('lc').textContent=count;
+  document.getElementById(fid).style.display='none';
+  document.getElementById(sid).classList.add('show');
+}
+
+// JSONP callbacks
+window.mailchimpCallback_hf=function(data){console.log('mc:',data)};
+window.mailchimpCallback_cf=function(data){console.log('mc:',data)};
+</script>
+<div class="big-cd" id="bigCd"><div class="big-cd-num" id="bigCdNum">10</div></div>
+</body>
+</html>
